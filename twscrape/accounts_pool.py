@@ -1,8 +1,9 @@
 import asyncio
+import random
 import sqlite3
 import uuid
 from datetime import datetime, timezone
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 from fake_useragent import UserAgent
 from httpx import HTTPStatusError
@@ -35,14 +36,18 @@ def guess_delim(line: str):
 class AccountsPool:
     # _order_by: str = "RANDOM()"
     _order_by: str = "username"
+    _total_accounts: int = 0
+    _current_account: int = 0
 
     def __init__(
         self,
         db_file="accounts.db",
+        account_method: Literal["FIRST", "RANDOM", "SEQUENCE"] = "SEQUENCE",
         login_config: LoginConfig | None = None,
         raise_when_no_account=False,
     ):
         self._db_file = db_file
+        self._account_method = account_method
         self._login_config = login_config or LoginConfig()
         self._raise_when_no_account = raise_when_no_account
 
@@ -278,10 +283,21 @@ class AccountsPool:
             OR json_extract(locks, '$.{queue}') < datetime('now')
         )
         ORDER BY {self._order_by}
-        LIMIT 1
         """
 
-        return await self._get_and_lock(queue, q)
+        rows = await fetchall(self._db_file, q)
+        usernames = [row["username"] for row in rows]
+        self._total_accounts = len(usernames)
+
+        if self._account_method == "FIRST":
+            self._current_account = 1
+        elif self._account_method == "RANDOM":
+            self._current_account = random.randint(1, self._total_accounts)
+        elif self._account_method == "SEQUENCE":
+            self._current_account = self._current_account % self._total_accounts + 1
+
+        username = usernames[self._current_account - 1]
+        return await self._get_and_lock(queue, username)
 
     async def get_for_queue_or_wait(self, queue: str) -> Account | None:
         msg_shown = False
