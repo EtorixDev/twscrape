@@ -47,7 +47,9 @@ class AccountsPool:
         raise_when_no_account=False,
     ):
         self._db_file = db_file
-        self._account_method = account_method
+        self._account_method = (
+            account_method if account_method in ["FIRST", "RANDOM", "SEQUENCE"] else "SEQUENCE"
+        )
         self._login_config = login_config or LoginConfig()
         self._raise_when_no_account = raise_when_no_account
 
