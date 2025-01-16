@@ -2,14 +2,15 @@ check:
 	@make lint
 	@make test
 
-deps:
-	@pip install -e .[dev]
+install:
+	pip install -e .[dev]
+	python -m build
 
 build:
-	@python -m build
+	python -m build --sdist --wheel --outdir dist/ .
 
 lint:
-	# https://docs.astral.sh/ruff/settings/#sorting-imports
+	@# https://docs.astral.sh/ruff/settings/#sorting-imports
 	@ruff check --select I --fix .
 	@ruff format .
 	@ruff check .
@@ -41,6 +42,7 @@ test-py-matrix:
 	@make test-py v=3.10
 	@make test-py v=3.11
 	@make test-py v=3.12
+	@make test-py v=3.13
 
 test-sq-matrix:
 	@# https://www.sqlite.org/chronology.html
@@ -71,7 +73,3 @@ update-mocks:
 	twscrape list_timeline --raw --limit 10 1494877848087187461 | jq > ./tests/mocked-data/raw_list_timeline.json
 	@# twscrape favoriters --raw --limit 10 1649191520250245121 | jq > ./tests/mocked-data/raw_favoriters.json
 	@# twscrape liked_tweets --raw --limit 10 2244994945 | jq > ./tests/mocked-data/raw_likes.json
-
-x:
-	twscrape tweet_details --raw 1790441814857826439 | jq > ./tests/mocked-data/card_broadcast.json
-	twscrape tweet_details --raw 1789054061729173804 | jq > ./tests/mocked-data/card_audiospace.json

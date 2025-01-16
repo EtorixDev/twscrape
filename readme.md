@@ -89,6 +89,7 @@ async def main():
     await gather(api.subscriptions(user_id, limit=20))  # list[User]
     await gather(api.user_tweets(user_id, limit=20))  # list[Tweet]
     await gather(api.user_tweets_and_replies(user_id, limit=20))  # list[Tweet]
+    await gather(api.user_media(user_id, limit=20))  # list[Tweet]
 
     # list info
     list_id = 123456789
@@ -241,6 +242,7 @@ twscrape tweet_replies TWEET_ID --limit=20
 twscrape retweeters TWEET_ID --limit=20
 twscrape user_by_id USER_ID
 twscrape user_by_login USERNAME
+twscrape user_media USER_ID --limit=20
 twscrape following USER_ID --limit=20
 twscrape followers USER_ID --limit=20
 twscrape verified_followers USER_ID --limit=20
@@ -260,6 +262,10 @@ By default, parsed data is returned. The original tweet responses can be retriev
 ```sh
 twscrape search "elon mask lang:es" --limit=20 --raw
 ```
+
+### About `limit` param
+
+X API works through pagination, each API method can have different defaults for per page parameter (and this parameter can't be changed by caller). So `limit` param in `twscrape` is the desired number of objects (tweets or users, depending on the method). `twscrape` tries to return NO LESS objects than requested. If the X API returns less or more objects, `twscrape` will return whatever X gives.
 
 ## Proxy
 
