@@ -291,6 +291,9 @@ class AccountsPool:
         usernames = [row["username"] for row in rows]
         self._total_accounts = len(usernames)
 
+        if not usernames:
+            return None
+
         if self._account_method == "FIRST":
             self._current_account = 1
         elif self._account_method == "RANDOM":
